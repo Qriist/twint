@@ -21,7 +21,14 @@ def init(db):
     try:
         conn = sqlite3.connect(db)
         cursor = conn.cursor()
-
+        SQL_users= "id,id_str,name,username,bio,location,url,join_date,join_time,tweets integer,following integer,followers integer,likes integer,media integer,private integer,verified integer,profile_image_url,background_image,hex_dig,time_update"
+        SQL_tweets= "id,id_str,tweet,conversation_id,created_at integer,date,time,timezone,place,replies_count,likes_count integer,retweets_count integer,user_id integer,user_id_str,screen_name,name,link,mentions,hashtags,cashtags,urls,photos,quote_url,video,geo,near,source,time_update"
+        SQL_retweets= "user_id,username,tweet_id integer,retweet_id,retweet_date"
+        SQL_favorites= "user_id,tweet_id"
+        SQL_followers= "id,follower_id"
+        SQL_following= "id,following_id"
+        SQL_followers_names= "user,time_update,follower"
+        SQL_following_names= "user,time_update,follows"
         table_users = """
             CREATE TABLE IF NOT EXISTS
                 users(
