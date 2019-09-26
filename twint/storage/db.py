@@ -30,9 +30,9 @@ def init(db):
         SQL_following= "id,following_id"
         SQL_followers_names= "user,time_update,follower"
         SQL_following_names= "user,time_update,follows"
-		SQL_replies = "tweet_id,user_id,username"
+	SQL_replies = "tweet_id,user_id,username"
 		
-		table_users = """
+	table_users = """
             CREATE TABLE IF NOT EXISTS
                 users(
                     id integer not null,
