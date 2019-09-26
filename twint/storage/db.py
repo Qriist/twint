@@ -207,7 +207,8 @@ def follow(conn, Username, Followers, User):
         cursor = conn.cursor()
         entry = (User, time_ms, Username,)
         table = fTable(Followers)
-        query = f"INSERT INTO {table}( + SQL_followers if config.Followers else SQL_following + ) VALUES(?,?,?)"
+		follow_ternary = SQL_followers if config.Followers else SQL_following
+        query = f"INSERT INTO {table}( + {follow_ternary} + ) VALUES(?,?,?)"
         cursor.execute(query, entry)
         conn.commit()
     except sqlite3.IntegrityError:
