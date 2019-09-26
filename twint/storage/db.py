@@ -21,6 +21,7 @@ def init(db):
     try:
         conn = sqlite3.connect(db)
         cursor = conn.cursor()
+		
         SQL_users= "id,id_str,name,username,bio,location,url,join_date,join_time,tweets integer,following integer,followers integer,likes integer,media integer,private integer,verified integer,profile_image_url,background_image,hex_dig,time_update"
         SQL_tweets= "id,id_str,tweet,conversation_id,created_at integer,date,time,timezone,place,replies_count,likes_count integer,retweets_count integer,user_id integer,user_id_str,screen_name,name,link,mentions,hashtags,cashtags,urls,photos,quote_url,video,geo,near,source,time_update"
         SQL_retweets= "user_id,username,tweet_id integer,retweet_id,retweet_date"
@@ -29,7 +30,9 @@ def init(db):
         SQL_following= "id,following_id"
         SQL_followers_names= "user,time_update,follower"
         SQL_following_names= "user,time_update,follows"
-        table_users = """
+		SQL_replies = "tweet_id,user_id,username"
+		
+		table_users = """
             CREATE TABLE IF NOT EXISTS
                 users(
                     id integer not null,
@@ -204,7 +207,7 @@ def follow(conn, Username, Followers, User):
         cursor = conn.cursor()
         entry = (User, time_ms, Username,)
         table = fTable(Followers)
-        query = f"INSERT INTO {table} VALUES(?,?,?)"
+        query = f"INSERT INTO {table}(" SQL_followers ") VALUES(?,?,?)"
         cursor.execute(query, entry)
         conn.commit()
     except sqlite3.IntegrityError:
@@ -227,14 +230,14 @@ def user(conn, config, User):
         old_hash = get_hash_id(conn, User.id)
 
         if old_hash == -1 or old_hash != hex_dig:
-            query = f"INSERT INTO users VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            query = f"INSERT INTO users('" SQL_user "') VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             cursor.execute(query, entry)
         else:
             pass
 
         if config.Followers or config.Following:
             table = uTable(config.Followers)
-            query = f"INSERT INTO {table} VALUES(?,?)"
+            query = f"INSERT INTO {table}('" SQL_followers "') VALUES(?,?)"
             cursor.execute(query, (config.User_id, int(User.id)))
 
         conn.commit()
@@ -273,20 +276,20 @@ def tweets(conn, Tweet, config):
                     Tweet.near,
                     Tweet.source,
                     time_ms)
-        cursor.execute('INSERT INTO tweets VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', entry)
+        cursor.execute('INSERT INTO tweets('" SQL_tweets "') VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', entry)
 
         if config.Favorites:
-            query = 'INSERT INTO favorites VALUES(?,?)'
+            query = 'INSERT INTO favorites('" SQL_favorites "') VALUES(?,?)'
             cursor.execute(query, (config.User_id, Tweet.id))
 
         if Tweet.retweet:
-            query = 'INSERT INTO retweets VALUES(?,?,?,?,?)'
+            query = 'INSERT INTO retweets('" SQL_retweets "') VALUES(?,?,?,?,?)'
             _d = datetime.timestamp(datetime.strptime(Tweet.retweet_date, "%Y-%m-%d %H:%M:%S"))
             cursor.execute(query, (int(Tweet.user_rt_id), Tweet.user_rt, Tweet.id, int(Tweet.retweet_id), _d))
         
         if Tweet.reply_to:
             for reply in Tweet.reply_to:
-                query = 'INSERT INTO replies VALUES(?,?,?)'
+                query = 'INSERT INTO replies('" SQL_replies "') VALUES(?,?,?)'
                 cursor.execute(query, (Tweet.id, int(reply['user_id']), reply['username']))
 
         conn.commit()
